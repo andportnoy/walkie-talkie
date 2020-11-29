@@ -1,12 +1,14 @@
 CFLAGS+=-include project.h
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
-PROG=main
+PROG=server client
 
-CFLAGS += -O3 -Wall -Wextra -std=gnu99 -march=native -flto
+CFLAGS += -O3 -Wall -Wextra -pedantic -std=gnu99 -march=native -flto
 LDFLAGS = -lportaudio
 
-$(PROG): $(OBJS)
+all: $(PROG)
+server: server.o utils.o
+client: client.o utils.o
 
 clean:
 	rm -rf $(PROG) $(OBJS)
