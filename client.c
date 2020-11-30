@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	int sock;
 	struct addrinfo *p;
 	for (p=res; p; p = p->ai_next) {
-		char *str = addrstr(p);
+		char *str = addrstr(p->ai_addr);
 		printf("getaddrinfo: %s\n", str);
 		sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (-1 == sock) {
@@ -31,6 +31,12 @@ int main(int argc, char **argv) {
 		} else {
 			printf("\tconnect: success\n");
 		}
+		struct sockaddr_storage ss = {0};
+		socklen_t size = sizeof ss;
+		x = getsockname(sock, (struct sockaddr *)&ss, &size);
+		errif(-1==x, "getsockname");
+		puts("\tgetsockname");
+		printf("connected on %s\n", addrstr((struct sockaddr *)&ss));
 
 		break;
 	}

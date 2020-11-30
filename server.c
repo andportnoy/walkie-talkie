@@ -9,7 +9,7 @@ int main(void) {
 
 	x = getaddrinfo(NULL, PORT, &hints, &res);
 	dieif(x, "getaddrinfo: %s", gai_strerror(x));
-	printf("getaddrinfo: %s\n", addrstr(res));
+	printf("getaddrinfo: %s\n", addrstr(res->ai_addr));
 
 	int sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	errif(sock==-1, "socket");
@@ -35,7 +35,7 @@ int main(void) {
 		socklen_t csalen = sizeof csa;
 		int csock = accept(sock, (struct sockaddr *)&csa, &csalen);
 		errif(csock==-1, "accept");
-		printf("\taccept ->"); fflush(stdout);
+		printf("\taccept %s ->", addrstr((void *)&csa)); fflush(stdout);
 
 		char msg[] = "Hello!";
 		x = send(csock, msg, sizeof msg, 0);

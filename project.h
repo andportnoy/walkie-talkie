@@ -32,4 +32,4 @@
 #define PORT "5757"
 #define BACKLOG 10
 
-char *addrstr(struct addrinfo *ai);
+char *addrstr(struct sockaddr *sa);
