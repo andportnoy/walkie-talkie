@@ -1,4 +1,7 @@
-int main(void) {
+int main(int argc, char **argv) {
+	assert(argc == 2);
+	char *filename = argv[1];
+
 	int x; /* status/return value */
 	struct addrinfo hints = {
 		.ai_family = AF_UNSPEC,
@@ -38,15 +41,17 @@ int main(void) {
 		printf("\taccept %s ->", addrstr((void *)&csa)); fflush(stdout);
 		printf("\n");
 
-		for (;;) {
-			char *msg = 0;
-			unsigned long n = 0;
-			printf("enter message: ");
-			getline(&msg, &n, stdin);
 
-			x = send(csock, msg, n, 0);
+		FILE *f = fopen(filename, "r");
+		errif(!f, "fopen");
+
+		puts("sending file");
+		char buf[BUFSIZ];
+		while ((x = fread(buf, 1, sizeof buf, f))) {
+			x = send(csock, buf, x, 0);
 			errif(x==-1, "send");
 		}
+		fclose(f);
 
 		errif(close(csock)==-1, "close csock");
 		printf(" close csock.\n"); fflush(stdout);

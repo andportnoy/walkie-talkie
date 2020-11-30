@@ -1,7 +1,8 @@
 int main(int argc, char **argv) {
 	int x;
-	assert(argc == 2);
+	assert(argc == 3);
 	char *host = argv[1];
+	char *filename = argv[2];
 
 	struct addrinfo hints = {
 		.ai_family = AF_UNSPEC,
@@ -43,16 +44,18 @@ int main(int argc, char **argv) {
 
 	dieif(!p, "failed to connect");
 
-	puts("================MESSAGES================");
+	FILE *f = fopen(filename, "w");
+	errif(!f, "fopen");
+
 	char buf[BUFSIZ];
 	int n = 0;
-	while ((x = recv(sock, buf, sizeof buf-1, 0)) > 0) {
-		buf[x] = 0;
-		n += printf("%s", buf);
+	puts("downloading file...");
+	while ((x = recv(sock, buf, sizeof buf, 0)) > 0) {
+		n += fwrite(buf, x, 1, f);
 	};
-	printf(n? "\n": "");
 	errif(x==-1, "\nrecv");
 	puts("recv");
+	fclose(f);
 	close(sock);
 	puts("close");
 }
