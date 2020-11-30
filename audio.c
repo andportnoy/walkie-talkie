@@ -68,8 +68,7 @@ void devprint(void) {
 
 int main() {
 	PaStream *stream;
-	int n = 44100;
-	patype *buf = calloc(n, sizeof *buf);
+	patype *buf = calloc(NFRAMES, sizeof *buf);
 
 	pacheck(Pa_Initialize(), "initialize");
 	devprint();
@@ -79,8 +78,15 @@ int main() {
 	  "open default stream");
 	pacheck(Pa_StartStream(stream), "start stream");
 
-	pacheck(Pa_ReadStream(stream, buf, n), "read stream");
-	pacheck(Pa_WriteStream(stream, buf, n), "write stream");
+	/* prefill the playback buffer to avoid immediate underruns */
+	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
+	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
+	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
+	for (;;) {
+		pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
+		pawarn(Pa_ReadStream(stream, buf, NFRAMES), "read stream");
+		usleep(11250); /* can sleep this long without starvation */
+	}
 
 	pacheck(Pa_StopStream(stream), "stop stream");
 	pacheck(Pa_CloseStream(stream), "close stream");
