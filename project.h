@@ -38,7 +38,12 @@
 		perror(msg); \
 	}
 
+#define PAFORMAT paFloat32
+#define SRATE 44100
+#define NFRAMES 256
 #define PORT "5757"
 #define BACKLOG 10
+
+typedef float patype;
 
 char *addrstr(struct sockaddr *sa);

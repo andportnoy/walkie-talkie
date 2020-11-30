@@ -67,19 +67,23 @@ void devprint(void) {
 }
 
 int main() {
-	PaError err;
-	(void)err;
+	PaStream *stream;
+	int n = 44100;
+	patype *buf = calloc(n, sizeof *buf);
 
-	/* initialize */
 	pacheck(Pa_Initialize(), "initialize");
-
 	devprint();
 
-	/* open stream */
-	/* start stream */
-	/* stop stream */
-	/* close stream */
+	pacheck(
+	  Pa_OpenDefaultStream(&stream, 1, 1, PAFORMAT, SRATE, NFRAMES, 0, 0),
+	  "open default stream");
+	pacheck(Pa_StartStream(stream), "start stream");
 
-	/* terminate */
+	pacheck(Pa_ReadStream(stream, buf, n), "read stream");
+	pacheck(Pa_WriteStream(stream, buf, n), "write stream");
+
+	pacheck(Pa_StopStream(stream), "stop stream");
+	pacheck(Pa_CloseStream(stream), "close stream");
 	pacheck(Pa_Terminate(), "terminate")
+	free(buf);
 }
