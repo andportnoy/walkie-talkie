@@ -4,7 +4,6 @@ OBJS=$(SRCS:.c=.o)
 PROG=server client
 
 CFLAGS += -O3 -Wall -Wextra -pedantic -std=gnu99 -march=native -flto
-LDFLAGS = -lportaudio
 
 all: $(PROG)
 server: server.o utils.o

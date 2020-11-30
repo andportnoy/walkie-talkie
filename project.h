@@ -9,8 +9,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-//#include "portaudio.h"
-
 #define dieif(cond, ...) \
 	if ((cond)) { \
 		fprintf(stderr, __VA_ARGS__); \
