@@ -1,5 +1,5 @@
+#define NUM_SECONDS  2
 #define SAMPLE_RATE  44100
-#define NUM_CHANNELS 2
 /*
  * 1. Record audio to a buffer.
  * 2. Save buffer to disk.
@@ -7,7 +7,7 @@
  * 4. Play audio.
  */
 
-struct userdata {
+struct recording {
     int len, cap;
     float *data;
 };
@@ -20,7 +20,7 @@ static int icallback(
   PaStreamCallbackFlags flags,
   void *userdata)
 {
-	struct userdata *ud = userdata;
+	struct recording *ud = userdata;
 	int status;
 
 	(void) output;
@@ -37,58 +37,12 @@ static int icallback(
 
 	float *wp = &ud->data[ud->len];
 	const float *rp = input;
-	for (unsigned i=0; rp && i<nframes; ++i, ++ud->len)
-		wp[i] = rp[i];
+	if (rp)
+		memcpy(wp, rp, nframes * sizeof *wp);
+	else
+		memset(wp, 0,  nframes * sizeof *wp);
+	ud->len += nframes;
 	return status;
-}
-
-static int ocallback(
-  const void *input,
-  void *output,
-  unsigned long nframes,
-  const PaStreamCallbackTimeInfo* timeinfo,
-  PaStreamCallbackFlags flags,
-  void *userdata)
-{
-    paTestData *data = (paTestData*)userData;
-    SAMPLE *rptr = &data->recordedSamples[data->frameIndex * NUM_CHANNELS];
-    SAMPLE *wptr = (SAMPLE*)outputBuffer;
-    unsigned int i;
-    int finished;
-    unsigned int framesLeft = data->maxFrameIndex - data->frameIndex;
-
-    (void) inputBuffer; /* Prevent unused variable warnings. */
-    (void) timeInfo;
-    (void) statusFlags;
-    (void) userData;
-
-    if( framesLeft < framesPerBuffer )
-    {
-        /* final buffer... */
-        for( i=0; i<framesLeft; i++ )
-        {
-            *wptr++ = *rptr++;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  /* right */
-        }
-        for( ; i<framesPerBuffer; i++ )
-        {
-            *wptr++ = 0;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = 0;  /* right */
-        }
-        data->frameIndex += framesLeft;
-        finished = paComplete;
-    }
-    else
-    {
-        for( i=0; i<framesPerBuffer; i++ )
-        {
-            *wptr++ = *rptr++;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  /* right */
-        }
-        data->frameIndex += framesPerBuffer;
-        finished = paContinue;
-    }
-    return finished;
 }
 
 void initialize(void) {
@@ -131,15 +85,21 @@ void idle(int seconds) {
 	Pa_Sleep(seconds*1000);
 }
 
+
 int main() {
 	PaStream *istream, *ostream;
 	PaError err;
 
 	initialize();
 
-	struct userdata ud = {0};
+	struct recording ud = {
+		.len = 0,
+		.cap = NUM_SECONDS * SAMPLE_RATE,
+		.data = calloc(ud.cap, sizeof *ud.data),
+	};
+
 	err = Pa_OpenDefaultStream(
-	  &istream, 2, 0, paFloat32, SAMPLE_RATE, paFramesPerBufferUnspecified,
+	  &istream, 1, 0, paFloat32, SAMPLE_RATE, paFramesPerBufferUnspecified,
 	  icallback, &ud);
 	if (err != paNoError) {
 		fprintf(stderr, "PortAudio open default stream error: %s\n",
@@ -148,6 +108,10 @@ int main() {
 	}
 
 	start(istream);
+	while (Pa_IsStreamActive(istream)) {
+		Pa_Sleep(100);
+		printf("ud.len = %d\n", ud.len);
+	}
 	stop(istream);
 
 	err = Pa_CloseStream(istream);
