@@ -36,11 +36,17 @@ int main(void) {
 		int csock = accept(sock, (struct sockaddr *)&csa, &csalen);
 		errif(csock==-1, "accept");
 		printf("\taccept %s ->", addrstr((void *)&csa)); fflush(stdout);
+		printf("\n");
 
-		char msg[] = "Hello!";
-		x = send(csock, msg, sizeof msg, 0);
-		errif(x==-1, "send");
-		printf(" send ->"); fflush(stdout);
+		for (;;) {
+			char *msg = 0;
+			unsigned long n = 0;
+			printf("enter message: ");
+			getline(&msg, &n, stdin);
+
+			x = send(csock, msg, n, 0);
+			errif(x==-1, "send");
+		}
 
 		errif(close(csock)==-1, "close csock");
 		printf(" close csock.\n"); fflush(stdout);

@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 
 	dieif(!p, "failed to connect");
 
+	puts("================MESSAGES================");
 	char buf[BUFSIZ];
 	int n = 0;
 	while ((x = recv(sock, buf, sizeof buf-1, 0)) > 0) {
