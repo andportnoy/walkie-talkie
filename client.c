@@ -47,14 +47,18 @@ int main(int argc, char **argv) {
 
 	patype buf[NFRAMES];
 	for (;;) {
-		patype *ptr = buf;
+		char *ptr = (void *)buf;
 		for (int rem = sizeof buf; rem; rem-=x, ptr+=x) {
 			dieif(rem<0, "rem < 0");
 			x = recv(sock, ptr, rem, 0);
 			printf("buf = %p, rem = %d, ptr = %p, x = %d\n",
 			  (void *)buf, rem, (void *)ptr, x);
 			errif(x==-1, "\nrecv");
+			if (x == 0)
+				break;
 		}
+		if (x == 0)
+			break;
 		audio_write(buf);
 	}
 
