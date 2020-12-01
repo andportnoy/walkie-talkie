@@ -1,6 +1,6 @@
 #define PAFORMAT paFloat32
 #define SRATE 44100
-#define NFRAMES 8192
+#define NFRAMES 512
 
 #define pacheck(err, msg) { \
 	PaError e = err; \

@@ -51,8 +51,6 @@ int main(int argc, char **argv) {
 		for (int rem = sizeof buf; rem; rem-=x, ptr+=x) {
 			dieif(rem<0, "rem < 0");
 			x = recv(sock, ptr, rem, 0);
-			printf("buf = %p, rem = %d, ptr = %p, x = %d\n",
-			  (void *)buf, rem, (void *)ptr, x);
 			errif(x==-1, "\nrecv");
 			if (x == 0)
 				break;
