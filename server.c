@@ -43,9 +43,12 @@ int main(void) {
 
 		for (int i=0, n=5*SRATE/NFRAMES; i<n; ++i) {
 			patype *data = audio_read();
-			x = send(csock, data, NFRAMES*sizeof *data, 0);
-			errif(x==-1, "send");
-
+			for (int rem=NFRAMES*sizeof *data; rem; rem-=x,data+=x){
+				x = send(csock, data, rem, 0);
+				printf(" x=%d", x);
+				errif(x==-1, "send");
+			}
+			printf("\n");
 		}
 		errif(close(csock)==-1, "close csock");
 		printf(" close csock.\n"); fflush(stdout);

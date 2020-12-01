@@ -46,11 +46,18 @@ int main(int argc, char **argv) {
 	dieif(!p, "failed to connect");
 
 	patype buf[NFRAMES];
-	while ((x = recv(sock, buf, sizeof buf, 0)) > 0) {
+	for (;;) {
+		patype *ptr = buf;
+		for (int rem = sizeof buf; rem; rem-=x, ptr+=x) {
+			dieif(rem<0, "rem < 0");
+			x = recv(sock, ptr, rem, 0);
+			printf("buf = %p, rem = %d, ptr = %p, x = %d\n",
+			  (void *)buf, rem, (void *)ptr, x);
+			errif(x==-1, "\nrecv");
+		}
 		audio_write(buf);
-	};
-	errif(x==-1, "\nrecv");
-	puts("recv");
+	}
+
 	close(sock);
 	puts("close");
 
