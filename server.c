@@ -1,6 +1,5 @@
-int main(int argc, char **argv) {
-	assert(argc == 2);
-	char *filename = argv[1];
+int main(void) {
+	audio_initialize();
 
 	int x; /* status/return value */
 	struct addrinfo hints = {
@@ -42,20 +41,17 @@ int main(int argc, char **argv) {
 		printf("\n");
 
 
-		FILE *f = fopen(filename, "r");
-		errif(!f, "fopen");
-
-		puts("sending file");
-		char buf[BUFSIZ];
-		while ((x = fread(buf, 1, sizeof buf, f))) {
-			x = send(csock, buf, x, 0);
+		for (int i=0, n=5*SRATE/NFRAMES; i<n; ++i) {
+			patype *data = audio_read();
+			x = send(csock, data, NFRAMES*sizeof *data, 0);
 			errif(x==-1, "send");
-		}
-		fclose(f);
 
+		}
 		errif(close(csock)==-1, "close csock");
 		printf(" close csock.\n"); fflush(stdout);
 	}
 	errif(close(sock)==-1,  "close sock");
 	puts("close sock.");
+
+	audio_terminate();
 }

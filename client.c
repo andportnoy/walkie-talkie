@@ -1,8 +1,9 @@
 int main(int argc, char **argv) {
+	audio_initialize();
+
 	int x;
-	assert(argc == 3);
+	assert(argc == 2);
 	char *host = argv[1];
-	char *filename = argv[2];
 
 	struct addrinfo hints = {
 		.ai_family = AF_UNSPEC,
@@ -44,18 +45,14 @@ int main(int argc, char **argv) {
 
 	dieif(!p, "failed to connect");
 
-	FILE *f = fopen(filename, "w");
-	errif(!f, "fopen");
-
-	char buf[BUFSIZ];
-	int n = 0;
-	puts("downloading file...");
+	patype buf[NFRAMES];
 	while ((x = recv(sock, buf, sizeof buf, 0)) > 0) {
-		n += fwrite(buf, x, 1, f);
+		audio_write(buf);
 	};
 	errif(x==-1, "\nrecv");
 	puts("recv");
-	fclose(f);
 	close(sock);
 	puts("close");
+
+	audio_terminate();
 }

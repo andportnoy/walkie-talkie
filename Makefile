@@ -9,8 +9,12 @@ CFLAGS += -O3 -march=native -flto
 
 all: $(PROG)
 
-server: server.o utils.o
-client: client.o utils.o
+server: server.o utils.o audio.o
+server: LDFLAGS += -lportaudio
+server: INCLUDE += audio.h
+client: client.o utils.o audio.o
+client: LDFLAGS += -lportaudio
+client: INCLUDE += audio.h
 audio_test: audio.o
 audio_test: LDFLAGS += -lportaudio
 audio_test: INCLUDE += audio.h
