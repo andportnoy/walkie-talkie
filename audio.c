@@ -66,30 +66,38 @@ void devprint(void) {
 	tableprint((char ***)table, m, n);
 }
 
-int main() {
+static struct {
 	PaStream *stream;
-	patype *buf = calloc(NFRAMES, sizeof *buf);
+	patype *buf; /* NFRAMES */
+	int initialized;
+} ctx;
+
+void audio_initialize(void) {
+	ctx.buf = calloc(NFRAMES, sizeof *ctx.buf);
 
 	pacheck(Pa_Initialize(), "initialize");
-	devprint();
-
 	pacheck(
-	  Pa_OpenDefaultStream(&stream, 1, 1, PAFORMAT, SRATE, NFRAMES, 0, 0),
+	  Pa_OpenDefaultStream(&ctx.stream, 1, 1, PAFORMAT, SRATE, NFRAMES,0,0),
 	  "open default stream");
-	pacheck(Pa_StartStream(stream), "start stream");
+	pacheck(Pa_StartStream(ctx.stream), "start stream");
 
-	/* prefill the playback buffer to avoid immediate underruns */
-	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
-	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
-	pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
-	for (;;) {
-		pawarn(Pa_WriteStream(stream, buf, NFRAMES), "write stream");
-		pawarn(Pa_ReadStream(stream, buf, NFRAMES), "read stream");
-		usleep(11250); /* can sleep this long without starvation */
-	}
+	ctx.initialized = 1;
+}
 
-	pacheck(Pa_StopStream(stream), "stop stream");
-	pacheck(Pa_CloseStream(stream), "close stream");
+void audio_terminate(void) {
+	pacheck(Pa_StopStream(ctx.stream), "stop stream");
+	pacheck(Pa_CloseStream(ctx.stream), "close stream");
 	pacheck(Pa_Terminate(), "terminate")
-	free(buf);
+	free(ctx.buf);
+
+	ctx.initialized = 0;
+}
+
+patype *audio_read(void) {
+	pawarn(Pa_ReadStream(ctx.stream, ctx.buf, NFRAMES), "read stream");
+	return ctx.buf;
+}
+
+void audio_write(patype *data) {
+	pawarn(Pa_WriteStream(ctx.stream, data, NFRAMES), "write stream");
 }
