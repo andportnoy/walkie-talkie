@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <assert.h>
+#include <time.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
