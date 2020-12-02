@@ -7,7 +7,7 @@ CFLAGS += $(INCLUDE:%=-include %)
 CFLAGS += -Wall -Wextra -pedantic -std=gnu99
 CFLAGS += -O3 -march=native -flto
 
-LDFLAGS += -lportaudio
+LDFLAGS += -lportaudio -lpthread
 
 all: $(PROG)
 $(OBJS): $(INCLUDE)

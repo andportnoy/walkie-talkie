@@ -1,3 +1,37 @@
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
+int recording;
+void *keyboard_monitor(void *arg) {
+	(void)arg;
+
+	for (;;) {
+		if (getchar() == '\n') {
+			if (recording) {
+				recording = 0;
+				puts("done recording.");
+				fflush(stdout);
+			} else {
+				pthread_mutex_lock(&lock);
+				recording = 1;
+				puts("Recording...");
+				fflush(stdout);
+				pthread_cond_signal(&cond);
+				pthread_mutex_unlock(&lock);
+			}
+		}
+	}
+	return NULL;
+}
+
+void sendall(int sock, void *buf, size_t size) {
+	char *ptr = buf;
+	for (int rem=size, k; rem; rem-=k, ptr+=k) {
+		k = send(sock, ptr, rem, 0);
+		errif(k==-1, "send");
+	}
+}
+
 double msdiff(void) {
 	static int initialized = 0;
 	static struct timespec prev, cur;
@@ -46,6 +80,7 @@ int main(void) {
 	errif(x==-1, "listen");
 	printf(" listen ->\n");
 
+	patype *const buf = calloc(100*NFRAMES, sizeof *buf);
 	for (;;) {
 		struct sockaddr_storage csa = {0};
 		socklen_t csalen = sizeof csa;
@@ -54,19 +89,30 @@ int main(void) {
 		printf("\taccept %s ->", addrstr((void *)&csa)); fflush(stdout);
 		printf("\n");
 
-		for (;;) {
+		pthread_t mon;
+		pthread_create(&mon, NULL, keyboard_monitor, NULL);
+
+		patype *ptr = buf;
+
+		pthread_mutex_lock(&lock);
+		if (!recording)
+			pthread_cond_wait(&cond, &lock);
+		pthread_mutex_unlock(&lock);
+
+		while (recording) {
 			patype *data = audio_read();
-			char *ptr = (void *)data;
-			for (int rem=NFRAMES*sizeof *data; rem; rem-=x,ptr+=x) {
-				x = send(csock, ptr, rem, 0);
-				errif(x==-1, "send");
-			}
+			memcpy(ptr, data, NFRAMES*sizeof *data);
+			ptr += NFRAMES;
 		}
+
+		sendall(csock, buf, (ptr-buf) * sizeof *ptr);
+
 		errif(close(csock)==-1, "close csock");
-		printf(" close csock.\n"); fflush(stdout);
+		puts("close csock."); fflush(stdout);
 	}
 	errif(close(sock)==-1,  "close sock");
 	puts("close sock.");
 
 	audio_terminate();
+	free(buf);
 }
