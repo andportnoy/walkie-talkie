@@ -48,9 +48,13 @@ void *keyboard_monitor(void *arg) {
 void ptt_loop(int sock) {
 	for (;;) {
 		patype buf[NFRAMES] = {0};
-		while (recv(sock, buf, sizeof buf, 0) > 0)
+		int x;
+		while ((x = recv(sock, buf, sizeof buf, 0)) > 0) {
+			printf("received %d bytes\n", x);
 			audio_play(buf);
+		}
 		if (recording) {
+			puts("recording");
 			patype *chunk = audio_record();
 			sendall(sock, chunk, NFRAMES * sizeof *chunk);
 		}
