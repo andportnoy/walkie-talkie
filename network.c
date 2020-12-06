@@ -1,4 +1,4 @@
-void sendall(int sock, void *buf, size_t size) {
+int sendall(int sock, void *buf, size_t size) {
 	char *ptr = buf;
 	for (int rem=size, k; rem; rem-=k, ptr+=k) {
 		k = send(sock, ptr, rem, 0);
@@ -7,9 +7,8 @@ void sendall(int sock, void *buf, size_t size) {
 			continue;
 		}
 		errif(k==-1, "send");
-		printf("sent %d bytes\n", k);
-		fflush(stdout);
 	}
+	return size;
 }
 
 int recvall(int sock, void *buf, size_t size) {

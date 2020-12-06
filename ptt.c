@@ -51,13 +51,14 @@ void ptt_loop(int sock) {
 		patype buf[NFRAMES] = {0};
 		int x;
 		while ((x = recvall(sock, buf, sizeof buf))) {
-			printf("received %d bytes\n", x);
+			log("received %d bytes", x);
 			audio_play(buf);
 		}
 		if (recording) {
 			puts("recording");
 			patype *chunk = audio_record();
-			sendall(sock, chunk, NFRAMES * sizeof *chunk);
+			x = sendall(sock, chunk, NFRAMES * sizeof *chunk);
+			log("sent %d bytes", x);
 		}
 	}
 }
