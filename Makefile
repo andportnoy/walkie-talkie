@@ -1,7 +1,7 @@
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
 PROG=server client audio_test
-INCLUDE = common.h audio.h
+INCLUDE = common.h audio.h network.h
 
 CFLAGS += $(INCLUDE:%=-include %)
 CFLAGS += -Wall -Wextra -pedantic -std=gnu99
@@ -12,8 +12,8 @@ LDFLAGS += -lportaudio -lpthread
 all: $(PROG)
 $(OBJS): $(INCLUDE)
 
-server: utils.o audio.o
-client: utils.o audio.o
+server: network.o audio.o
+client: network.o audio.o
 audio_test: audio.o
 
 clean:

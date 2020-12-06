@@ -38,8 +38,3 @@
 	if ((cond)) { \
 		perror(msg); \
 	}
-
-#define PORT "5757"
-#define BACKLOG 10
-
-char *addrstr(struct sockaddr *sa);
