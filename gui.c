@@ -50,7 +50,5 @@ void *gui_run(void *arg) {
 
 int main(void) {
 	int value = 0;
-	pthread_t t;
-	pthread_create(&t, 0, gui_run, &value);
-	pthread_join(t, NULL);
+	gui_run(&value);
 }
