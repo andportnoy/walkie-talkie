@@ -14,6 +14,13 @@
 
 #include <portaudio.h>
 
+#define log(...) \
+	do { \
+		printf(__VA_ARGS__); \
+		puts(""); \
+		fflush(stdout); \
+	} while (0)
+
 #define dieif(cond, ...) \
 	if ((cond)) { \
 		fprintf(stderr, __VA_ARGS__); \
