@@ -5,6 +5,8 @@ void sendall(int sock, void *buf, size_t size) {
 		if (k==-1 && errno==EAGAIN)
 			continue;
 		errif(k==-1, "send");
+		printf("sent %d bytes\n", k);
+		fflush(stdout);
 	}
 }
 
