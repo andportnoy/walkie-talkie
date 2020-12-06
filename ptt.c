@@ -46,6 +46,7 @@ void *keyboard_monitor(void *arg) {
 }
 
 void ptt_loop(int sock) {
+	errif(-1==fcntl(sock,F_SETFL,fcntl(sock, F_GETFL)|O_NONBLOCK),"fcntl");
 	for (;;) {
 		patype buf[NFRAMES] = {0};
 		int x;
