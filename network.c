@@ -2,6 +2,8 @@ void sendall(int sock, void *buf, size_t size) {
 	char *ptr = buf;
 	for (int rem=size, k; rem; rem-=k, ptr+=k) {
 		k = send(sock, ptr, rem, 0);
+		if (k==-1 && errno==EAGAIN)
+			continue;
 		errif(k==-1, "send");
 	}
 }
