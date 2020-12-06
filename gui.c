@@ -1,25 +1,23 @@
-static void press(GtkWidget *widget, GdkEvent *event, gpointer user_data) {
-	(void) widget;
-	(void) event;
+struct toggle_button_state {
+	int on;
+	char *son;
+	char *soff;
+};
 
-	printf("int value: %d ->", *(int *)user_data);
-	*(int *)user_data = 1;
-	printf(" %d\n", *(int *)user_data);
-}
-
-static void release(GtkWidget *widget, GdkEvent *event, gpointer user_data) {
-	(void) widget;
-	(void) event;
-
-	printf("int value: %d ->", *(int *)user_data);
-	*(int *)user_data = 0;
-	printf(" %d\n", *(int *)user_data);
+static void toggle(GtkToggleButton *togglebutton, gpointer user_data) {
+	struct toggle_button_state *tbs = user_data;
+	tbs->on = !tbs->on;
+	gtk_button_set_label(
+	  GTK_BUTTON(togglebutton), tbs->on? tbs->son: tbs->soff);
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
 	GtkWidget *window;
-	GtkWidget *button;
+	GtkWidget *toggle_button;
 	GtkWidget *button_box;
+
+	struct toggle_button_state *tbs = user_data;
+	char *initial_label = tbs->on? tbs->son: tbs->soff;
 
 	window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), "PTT");
@@ -28,12 +26,9 @@ static void activate(GtkApplication *app, gpointer user_data) {
 	button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
 	gtk_container_add(GTK_CONTAINER(window), button_box);
 
-	button = gtk_button_new_with_label("Push-to-talk");
-	g_signal_connect(
-	  button, "button-press-event", G_CALLBACK(press), user_data);
-	g_signal_connect(
-	  button, "button-release-event", G_CALLBACK(release), user_data);
-	gtk_container_add(GTK_CONTAINER(button_box), button);
+	toggle_button = gtk_toggle_button_new_with_label(initial_label);
+	g_signal_connect(toggle_button, "toggled", G_CALLBACK(toggle), tbs);
+	gtk_container_add(GTK_CONTAINER(button_box), toggle_button);
 
 	gtk_widget_show_all(window);
 }
@@ -49,6 +44,10 @@ void *gui_run(void *arg) {
 }
 
 int main(void) {
-	int value = 0;
-	gui_run(&value);
+	struct toggle_button_state tbs = {
+		.on   = 0,
+		.son  = "Stop",
+		.soff = "Start",
+	};
+	gui_run(&tbs);
 }
