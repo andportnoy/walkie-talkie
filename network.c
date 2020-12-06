@@ -3,7 +3,7 @@ ssize_t sendall(int sock, void *buf, ssize_t size) {
 	for (ssize_t rem=size, k; rem; rem-=k, ptr+=k) {
 		k = send(sock, ptr, rem, 0);
 		if (k==-1 && errno==EAGAIN) {
-			nanosleep(&(struct timespec){0, 1000000}, NULL);
+			nanosleep(&(struct timespec){0, 100000}, NULL);
 			k=0;
 			continue;
 		}
@@ -19,7 +19,7 @@ ssize_t recvall(int sock, void *buf, ssize_t size) {
 		if (rem==size && k==-1 && errno==EAGAIN)
 			return -1;
 		if (k==-1 && errno==EAGAIN) {
-			nanosleep(&(struct timespec){0, 1000000}, NULL);
+			nanosleep(&(struct timespec){0, 100000}, NULL);
 			k = 0;
 			continue;
 		}
