@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
 		client_loop(sock);
 	} else {
-		int sock = server(PORT);
+		sock = server(PORT);
 		log("Listening for connections...");
 
 		server_loop(sock);

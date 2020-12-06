@@ -1,7 +1,7 @@
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
-PROG=ptt audio_test
-INCLUDE = common.h audio.h network.h
+PROG=ptt
+INCLUDE = common.h audio.h network.h utils.h
 
 CFLAGS += $(INCLUDE:%=-include %)
 CFLAGS += -Wall -Wextra -pedantic -std=gnu99
@@ -13,7 +13,6 @@ all: $(PROG)
 $(OBJS): $(INCLUDE)
 
 ptt: network.o audio.o
-audio_test: audio.o
 
 clean:
 	rm -rf $(wildcard $(PROG)) $(wildcard $(OBJS))

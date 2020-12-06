@@ -1,4 +1,3 @@
-/* returns ms difference between calls, 0 on the first call */
 double msdiff(void) {
 	static int initialized = 0;
 	static struct timespec prev, cur;
