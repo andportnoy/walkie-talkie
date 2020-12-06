@@ -12,6 +12,24 @@ void sendall(int sock, void *buf, size_t size) {
 	}
 }
 
+int recvall(int sock, void *buf, size_t size) {
+	if (recv(sock, buf, size, MSG_PEEK) == 0) {
+		log("peer has close connection, recv got 0 bytes");
+		return 0;
+	}
+	char *ptr = buf;
+	for (int rem=size, k; rem; rem-=k, ptr+=k) {
+		k = recv(sock, ptr, rem, 0);
+		if (k==-1 && errno==EAGAIN) {
+			nanosleep(&(struct timespec){0, 1000}, NULL);
+			continue;
+		}
+		errif(k==-1, "recv");
+		dieif(k==0, "recv: got 0 bytes");
+	}
+	return size;
+}
+
 /* returns socket listening on port */
 int server(char *port) {
 	int x;

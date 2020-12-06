@@ -50,7 +50,7 @@ void ptt_loop(int sock) {
 	for (;;) {
 		patype buf[NFRAMES] = {0};
 		int x;
-		while ((x = recv(sock, buf, sizeof buf, 0)) > 0) {
+		while ((x = recvall(sock, buf, sizeof buf))) {
 			printf("received %d bytes\n", x);
 			audio_play(buf);
 		}
