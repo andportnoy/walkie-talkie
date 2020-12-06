@@ -21,5 +21,5 @@ typedef float patype;
 
 void audio_initialize(void);
 void audio_terminate(void);
-patype *audio_read(void);
-void audio_write(patype *data);
+patype *audio_record(void);
+void audio_play(patype *data);

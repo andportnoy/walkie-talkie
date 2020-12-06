@@ -93,11 +93,11 @@ void audio_terminate(void) {
 	ctx.initialized = 0;
 }
 
-patype *audio_read(void) {
+patype *audio_record(void) {
 	pawarn(Pa_ReadStream(ctx.stream, ctx.buf, NFRAMES), "read stream");
 	return ctx.buf;
 }
 
-void audio_write(patype *data) {
+void audio_play(patype *data) {
 	pawarn(Pa_WriteStream(ctx.stream, data, NFRAMES), "write stream");
 }

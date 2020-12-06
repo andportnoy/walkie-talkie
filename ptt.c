@@ -14,7 +14,7 @@ void client_loop(int sock) {
 		}
 		if (x == 0)
 			break;
-		audio_write(buf);
+		audio_play(buf);
 	}
 }
 
@@ -25,7 +25,7 @@ void server_loop(int sock) {
 		log("Serving new connection...");
 
 		for (;;) {
-			patype *data = audio_read();
+			patype *data = audio_record();
 			sendall(csock, data, NFRAMES * sizeof *data);
 		}
 
@@ -34,10 +34,36 @@ void server_loop(int sock) {
 	}
 }
 
+int recording = 0;
+void *keyboard_monitor(void *arg) {
+	(void) arg;
+	for (;;) {
+		if (getchar() == '\n') {
+			recording = !recording;
+			puts(recording? "ON": "OFF");
+		}
+	}
+}
+
+void ptt_loop(int sock) {
+	for (;;) {
+		patype buf[NFRAMES] = {0};
+		while (recv(sock, buf, sizeof buf, 0) > 0)
+			audio_play(buf);
+		if (recording) {
+			patype *chunk = audio_record();
+			sendall(sock, chunk, NFRAMES * sizeof *chunk);
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 	char *host = NULL;
 	if (argc == 2)
 		host = argv[1];
+
+	pthread_t keymon;
+	pthread_create(&keymon, NULL, keyboard_monitor, NULL);
 
 	audio_initialize();
 
@@ -46,16 +72,23 @@ int main(int argc, char **argv) {
 		sock = client(host, PORT);
 		log("Connected.");
 
-		client_loop(sock);
+		ptt_loop(sock);
 	} else {
 		sock = server(PORT);
 		log("Listening for connections...");
 
-		server_loop(sock);
+		int csock = accept(sock, NULL, NULL);
+		errif(csock == -1, "accept");
+		log("Serving client...");
+
+		ptt_loop(csock);
 	}
+
 
 	errif(close(sock)==-1, "socket close");
 	log("Closed socket.");
 
 	audio_terminate();
+
+	pthread_join(keymon, NULL);
 }
