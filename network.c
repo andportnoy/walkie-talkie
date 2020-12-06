@@ -1,9 +1,10 @@
-int sendall(int sock, void *buf, size_t size) {
+ssize_t sendall(int sock, void *buf, ssize_t size) {
 	char *ptr = buf;
-	for (int rem=size, k; rem; rem-=k, ptr+=k) {
+	for (ssize_t rem=size, k; rem; rem-=k, ptr+=k) {
 		k = send(sock, ptr, rem, 0);
 		if (k==-1 && errno==EAGAIN) {
-			nanosleep(&(struct timespec){0, 1000}, NULL);
+			nanosleep(&(struct timespec){0, 1000000}, NULL);
+			k=0;
 			continue;
 		}
 		errif(k==-1, "send");
@@ -11,16 +12,15 @@ int sendall(int sock, void *buf, size_t size) {
 	return size;
 }
 
-int recvall(int sock, void *buf, size_t size) {
-	if (recv(sock, buf, size, MSG_PEEK) == 0) {
-		log("peer has close connection, recv got 0 bytes");
-		return 0;
-	}
+ssize_t recvall(int sock, void *buf, ssize_t size) {
 	char *ptr = buf;
-	for (int rem=size, k; rem; rem-=k, ptr+=k) {
+	for (ssize_t rem=size, k; rem; rem-=k, ptr+=k) {
 		k = recv(sock, ptr, rem, 0);
+		if (rem==size && k==-1 && errno==EAGAIN)
+			return -1;
 		if (k==-1 && errno==EAGAIN) {
-			nanosleep(&(struct timespec){0, 1000}, NULL);
+			nanosleep(&(struct timespec){0, 1000000}, NULL);
+			k = 0;
 			continue;
 		}
 		errif(k==-1, "recv");

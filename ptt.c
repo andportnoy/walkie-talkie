@@ -40,25 +40,26 @@ void *keyboard_monitor(void *arg) {
 	for (;;) {
 		if (getchar() == '\n') {
 			recording = !recording;
-			puts(recording? "ON": "OFF");
+			log(recording? "ON": "OFF");
 		}
 	}
 }
 
 void ptt_loop(int sock) {
-	errif(-1==fcntl(sock,F_SETFL,fcntl(sock, F_GETFL)|O_NONBLOCK),"fcntl");
+	int flags = fcntl(sock, F_GETFL);
+	errif(-1==flags, "fcntl: F_GETFL");
+	errif(-1==fcntl(sock, F_SETFL, flags|O_NONBLOCK),"fcntl: F_SETFL");
 	for (;;) {
 		patype buf[NFRAMES] = {0};
 		int x;
-		while ((x = recvall(sock, buf, sizeof buf))) {
-			log("received %d bytes", x);
+		while ((x = recvall(sock, buf, sizeof buf)) > 0) {
+			dieif(x != sizeof buf, "received %d, expected %lu",
+			  x, sizeof buf);
 			audio_play(buf);
 		}
-		if (recording) {
-			puts("recording");
+		while (recording) {
 			patype *chunk = audio_record();
 			x = sendall(sock, chunk, NFRAMES * sizeof *chunk);
-			log("sent %d bytes", x);
 		}
 	}
 }
@@ -89,7 +90,6 @@ int main(int argc, char **argv) {
 
 		ptt_loop(csock);
 	}
-
 
 	errif(close(sock)==-1, "socket close");
 	log("Closed socket.");

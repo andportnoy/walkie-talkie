@@ -12,7 +12,7 @@ LDFLAGS += -lportaudio -lpthread
 all: $(PROG)
 $(OBJS): $(INCLUDE)
 
-ptt: network.o audio.o
+ptt: network.o audio.o utils.o
 
 clean:
 	rm -rf $(wildcard $(PROG)) $(wildcard $(OBJS))
