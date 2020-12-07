@@ -62,6 +62,7 @@ void *ptt_loop(void *arg) {
 			patype *chunk = audio_record();
 			x = sendall(sock, chunk, NFRAMES * sizeof *chunk);
 		}
+		nanosleep(&(struct timespec){0, 1000000}, NULL);
 	}
 	return NULL;
 }
@@ -80,18 +81,17 @@ int main(int argc, char **argv) {
 	if (host) {
 		sock = client(host, PORT);
 		log("Connected.");
-
-		ptt_loop(&sock);
 	} else {
-		sock = server(PORT);
+		int ssock = server(PORT);
 		log("Listening for connections...");
 
-		int csock = accept(sock, NULL, NULL);
-		errif(csock == -1, "accept");
+		sock = accept(ssock, NULL, NULL);
+		errif(sock == -1, "accept");
 		log("Serving client...");
-
-		ptt_loop(&csock);
 	}
+
+	log("Press enter to start recording, press again to stop.");
+	ptt_loop(&sock);
 
 	errif(close(sock)==-1, "socket close");
 	log("Closed socket.");
