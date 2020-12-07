@@ -45,7 +45,8 @@ void *keyboard_monitor(void *arg) {
 	}
 }
 
-void ptt_loop(int sock) {
+void *ptt_loop(void *arg) {
+	int sock = *(int *)arg;
 	int flags = fcntl(sock, F_GETFL);
 	errif(-1==flags, "fcntl: F_GETFL");
 	errif(-1==fcntl(sock, F_SETFL, flags|O_NONBLOCK),"fcntl: F_SETFL");
@@ -62,6 +63,7 @@ void ptt_loop(int sock) {
 			x = sendall(sock, chunk, NFRAMES * sizeof *chunk);
 		}
 	}
+	return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -79,7 +81,7 @@ int main(int argc, char **argv) {
 		sock = client(host, PORT);
 		log("Connected.");
 
-		ptt_loop(sock);
+		ptt_loop(&sock);
 	} else {
 		sock = server(PORT);
 		log("Listening for connections...");
@@ -88,7 +90,7 @@ int main(int argc, char **argv) {
 		errif(csock == -1, "accept");
 		log("Serving client...");
 
-		ptt_loop(csock);
+		ptt_loop(&csock);
 	}
 
 	errif(close(sock)==-1, "socket close");
